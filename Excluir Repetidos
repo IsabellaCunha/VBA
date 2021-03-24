@@ -1,0 +1,23 @@
+Sub Excluir_repetidos()
+    Sheets("Planilha1").Select
+    Range("A2").Select
+'Classifica todas as colunas com dados e ordena pela coluna "A"
+    [A2:B65535].Sort Key1:=[A2], Order1:=xlAscending
+    Dim X As Long
+    
+    For X = 1 To 65535
+           Cells(X, "A").Select
+        If Cells(X, "A") = "" Then
+            If Cells(X + 1, "A") = "" Then
+                MsgBox "Repetidos Excluidos Com Sucesso!", vbInformation
+                Exit Sub
+            End If
+        Else
+            If Cells(X, "A") = Cells(X + 1, "A") Then
+                Cells(X, "A").Select
+                Selection.EntireRow.Delete
+                X = X - 1
+            End If
+        End If
+    Next
+End Sub
