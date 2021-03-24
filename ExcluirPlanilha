@@ -1,0 +1,18 @@
+Sub ExcluirPlanilha()
+    Dim w As Worksheet
+    Dim Planilha As String
+    
+    Planilha = InputBox("Digite o nome da Planilha que deseja excluída:")
+    
+    On Error Resume Next
+    Set w = Sheets(Planilha)
+    On Error GoTo 0
+    
+    If w Is Nothing Then
+        MsgBox "Não existe planilha com esse nome!", vbCritical
+    Else
+        Application.DisplayAlerts = False
+        w.Delete
+        Application.DisplayAlerts = True
+    End If
+End Sub
