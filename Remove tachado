@@ -1,0 +1,131 @@
+Option Explicit
+Public gbCancel As Boolean
+
+Sub progress(ByVal path As String, ByVal pctCompl As Integer)
+
+ProgressForm.Text.Caption = pctCompl & "% Completed of:" & Chr(10) & path
+ProgressForm.Bar.Width = pctCompl * 2
+If gbCancel Then ProgressForm.Text.Caption = "Interrompendo..."
+
+DoEvents
+
+End Sub
+Public Sub VerifyCells()
+
+'excel variables
+    Dim xlApp As Excel.Application
+    Dim xlWorkBook As Excel.Workbook
+    Dim xlWorkSheet As Excel.Worksheet
+    Dim xlCell As Range
+    
+    
+    'code variables
+    Dim myfile, str As Variant
+    Dim counter, counter2 As Integer
+    Dim path, myfolder, processing As String
+    Dim pctCompl, cntSheet As Integer
+    Dim n, cntCell As Double
+'begin error trap
+    On Error GoTo ErrorHandler
+    
+'Creating Excel Instance
+    Set xlApp = CreateObject("Excel.Application")
+    xlApp.Visible = False
+    xlApp.DisplayAlerts = False
+    
+'Open progress window (also allowr abort by user)
+    ProgressForm.Show
+'Set global variables to known value
+    gbCancel = False
+    
+'User selects desired files
+    myfolder = Application.ActiveWorkbook.path
+    ChDir myfolder
+    myfile = Application.GetOpenFilename("Excel Files, *.xls;*.xlsx;*.xlsm", , , , True)
+    counter = 1
+    If IsNumeric(myfile) = True Then
+        MsgBox "No files selected"
+        gbCancel = True
+        GoTo Fim
+    End If
+    While counter <= UBound(myfile)
+'monitor user request to abort
+    If gbCancel Then GoTo Fim
+    path = myfile(counter)
+    xlApp.AutomationSecurity = msoAutomationSecurityByUI
+    Set xlWorkBook = xlApp.Workbooks.Open(path, False, False)
+       If Val(Application.Version) > 15 Then
+        If xlWorkBook.AutoSaveOn Then xlWorkBook.AutoSaveOn = False
+    End If
+    cntSheet = 1
+
+'start sheet loop in open file
+    For Each xlWorkSheet In xlWorkBook.Worksheets
+        
+        processing = xlWorkSheet.Name & " (" & cntSheet & " of " & xlWorkBook.Worksheets.Count & ")" & Chr(10) _
+        & xlWorkBook.Name & " (" & counter & " of " & UBound(myfile) & ")"
+        
+        If Not xlWorkSheet.Visible Then
+            xlWorkSheet.Visible = True
+            MsgBox "Atenção - Aba oculta na Planilha" & xlWorkBook.Name
+        End If
+      
+        cntCell = 1
+        
+        n = xlWorkSheet.UsedRange.Cells.Count
+
+'start cell loop within file
+
+        For Each xlCell In xlWorkSheet.UsedRange.Cells
+            If gbCancel Then GoTo Fim
+            pctCompl = cntCell * 100 / n
+            
+            progress processing, pctCompl
+            
+            counter2 = 0
+            For counter2 = 1 To Len(xlCell)
+                If xlCell.Characters(Start:=counter2, Length:=1).Font.Strikethrough = True Then
+                    xlCell.Characters(Start:=counter2, Length:=1).Font.Strikethrough = False
+                    xlCell.Characters(Start:=counter2, Length:=1).Delete
+                    counter2 = counter2 - 1
+                    
+                End If
+            Next
+            cntCell = cntCell + 1
+        
+        Next
+        
+    xlWorkSheet.UsedRange.Value = xlWorkSheet.UsedRange.Value
+    
+    cntSheet = cntSheet + 1
+    Next
+    'MsgBox path
+    xlWorkBook.Save
+    xlWorkBook.Close
+    counter = counter + 1
+Wend
+    
+Fim:
+    
+    Set xlWorkBook = Nothing
+    xlApp.Quit
+    Set xlApp = Nothing
+    Set xlWorkSheet = Nothing
+    Unload ProgressForm
+    Exit Sub
+
+
+ErrorHandler:
+    If MsgBox(Err.Description & " Devo continuar?", vbYesNo) = vbNo Then
+    gbCancel = True
+    GoTo Fim
+    Else
+    Resume Next
+    End If
+    
+End Sub
+
+
+
+
+
