@@ -1,0 +1,14 @@
+Sub ExcluirPalavra()
+  Dim localiza As Variant
+'Planilha(objeto) da célula "B1 até B1000".
+    With Planilha1.Range("B1:B1000")
+'Localizar texto contido na célula "C1".
+    Set localiza = .Find(Range("C1").Text, LookIn:=xlValues)
+    
+    If Not localiza Is Nothing Then
+        endereco = localiza.Address
+            localiza.Clear
+    End If
+    
+    End With
+End Sub
