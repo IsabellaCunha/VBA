@@ -1,0 +1,15 @@
+Sub ExcluirPalavras()
+    Dim Celula As Range, Plage As Range
+    Dim pl As String
+
+    Set Intervalo = Range("B2:B1000")
+    Palavra = Range("C1").Value2
+ 
+    Application.ScreenUpdating = False
+    For Each Celula In Intervalo
+        If Celula Like "*" & pl & "*" Then
+           Celula = Replace(Celula, Palavra, Clear)
+        End If
+    Next Celula
+    Application.ScreenUpdating = True
+End Sub
